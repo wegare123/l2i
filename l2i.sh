@@ -57,7 +57,7 @@ conn L2TP-PSK
 EOF
 
 cat << EOF > /etc/ipsec.secrets
-: PSK ""$psk""
+: PSK $psk
 EOF
 
 cat << EOF > /etc/xl2tpd/xl2tpd.conf
