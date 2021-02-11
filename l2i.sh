@@ -104,7 +104,7 @@ sleep 1
 /etc/init.d/ipsec start
 /etc/init.d/xl2tpd start
 echo "c myVPN" > /var/run/xl2tpd/l2tp-control
-ipsec up L2TP-PSK
+ipsec up L2TP-PSK &
 sleep 10
 route add $host gw $route metric 0 2>/dev/null
 pp="$(route -n | grep ppp | head -n1 | awk '{print $8}')" 
