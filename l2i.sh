@@ -119,7 +119,6 @@ elif [ "${tools}" = "3" ]; then
 mkdir -p /var/run/xl2tpd
 touch /var/run/xl2tpd/l2tp-control
 echo "d myVPN" > /var/run/xl2tpd/l2tp-control
-ipsec down L2TP-PSK &
 /etc/init.d/ipsec stop 2>/dev/null
 /etc/init.d/xl2tpd stop 2>/dev/null
 host="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $1}')" 
