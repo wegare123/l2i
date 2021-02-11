@@ -103,11 +103,13 @@ route="$(cat /root/akun/ipmodem.txt | grep -i ipmodem | cut -d= -f2 | tail -n1)"
 sleep 1
 /etc/init.d/ipsec start 2>/dev/null
 /etc/init.d/xl2tpd start 2>/dev/null
+sleep 1
+ipsec up L2TP-PSK &
+sleep 5
 mkdir -p /var/run/xl2tpd
 touch /var/run/xl2tpd/l2tp-control
 echo "c myVPN" > /var/run/xl2tpd/l2tp-control
-ipsec up L2TP-PSK &
-sleep 10
+sleep 5
 route add $host gw $route metric 0 2>/dev/null
 pp="$(route -n | grep ppp | head -n1 | awk '{print $8}')" 
 inet="$(ip r | grep $pp | head -n1 | awk '{print $9}')" 
@@ -119,14 +121,15 @@ elif [ "${tools}" = "3" ]; then
 mkdir -p /var/run/xl2tpd
 touch /var/run/xl2tpd/l2tp-control
 echo "d myVPN" > /var/run/xl2tpd/l2tp-control
+ipsec down L2TP-PSK &
 /etc/init.d/ipsec stop 2>/dev/null
 /etc/init.d/xl2tpd stop 2>/dev/null
 host="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $1}')" 
 route="$(cat /root/akun/ipmodem.txt | grep -i ipmodem | cut -d= -f2 | tail -n1)" 
 bles="$(iptables -t nat -v -L POSTROUTING -n --line-number | grep ppp | head -n1 | awk '{print $1}')" 
-killall -q l2i fping charon
 route del "$host" gw "$route" metric 0 2>/dev/null
 iptables -t nat -D POSTROUTING $bles 2>/dev/null
+killall -q fping charon
 killall dnsmasq 
 /etc/init.d/dnsmasq start > /dev/null
 sleep 2
