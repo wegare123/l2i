@@ -116,6 +116,7 @@ route add $host gw $route metric 0 2>/dev/null
 mkdir -p /var/run/xl2tpd
 touch /var/run/xl2tpd/l2tp-control
 echo "c myVPN" > /var/run/xl2tpd/l2tp-control
+echo "is connecting to the internet"
 sleep 8
 pp="$(route -n | grep ppp | head -n1 | awk '{print $8}')" 
 inet="$(ip r | grep $pp | head -n1 | awk '{print $9}')" 
