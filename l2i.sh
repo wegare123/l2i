@@ -4,7 +4,7 @@ host2="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $1}')"
 user2="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $2}')" 
 pass2="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $3}')" 
 psk2="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $4}')" 
-addr2="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $5}')" 
+#addr2="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $5}')" 
 clear
 echo "Inject l2tp/ipsec by wegare"
 echo "1. Sett Profile"
@@ -17,9 +17,9 @@ read -p "(default tools: 2) : " tools
 [ -z "${tools}" ] && tools="2"
 if [ "$tools" = "1" ]; then
 
-echo "Masukkan ip addres" 
-read -p "default ip addres: $addr2 : " addr
-[ -z "${addr}" ] && addr="$addr2"
+#echo "Masukkan ip addres" 
+#read -p "default ip addres: $addr2 : " addr
+##[ -z "${addr}" ] && addr="$addr2"
 
 echo "Masukkan bug.com.host" 
 read -p "default bug.com.host: $host2 : " host
@@ -58,7 +58,7 @@ conn L2TP-PSK
     type=transport
     leftprotoport=17/1701
     rightprotoport=17/1701
-    right=$addr
+    right=$host
 EOF
 
 cat << EOF > /etc/ipsec.secrets
@@ -95,8 +95,7 @@ EOF
 echo "$host
 $user
 $pass
-$psk
-$addr" > /root/akun/l2i.txt
+$psk" > /root/akun/l2i.txt
 echo "Sett Profile Sukses"
 sleep 2
 clear
@@ -110,7 +109,7 @@ route="$(cat /root/akun/ipmodem.txt | grep -i ipmodem | cut -d= -f2 | tail -n1)"
 /etc/init.d/ipsec start 2>/dev/null
 ipsec restart
 sleep 1
-ipsec up L2TP-PSK &
+ipsec up L2TP-PSK > /dev/null 2>&1 &
 sleep 2
 route add $host gw $route metric 0 2>/dev/null
 mkdir -p /var/run/xl2tpd
@@ -122,13 +121,19 @@ pp="$(route -n | grep ppp | head -n1 | awk '{print $8}')"
 inet="$(ip r | grep $pp | head -n1 | awk '{print $9}')" 
 route add default gw $inet metric 0 2>/dev/null
 iptables -A POSTROUTING --proto tcp -t nat -o $pp -j MASQUERADE 2>/dev/null
+konek=$(ip r | grep $pp | head -n1 | awk '{print $5}')
+if [ $pp = $konek ];then
+echo "connected"
+else
+echo "failed to connect"
+fi
 sleep 1
 fping -l google.com > /dev/null 2>&1 &
 elif [ "${tools}" = "3" ]; then
 mkdir -p /var/run/xl2tpd
 touch /var/run/xl2tpd/l2tp-control
 echo "d myVPN" > /var/run/xl2tpd/l2tp-control
-ipsec stop 2>/dev/null
+ipsec stop > /dev/null 2>&1 &
 /etc/init.d/ipsec stop 2>/dev/null
 /etc/init.d/xl2tpd stop 2>/dev/null
 host="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $1}')" 
