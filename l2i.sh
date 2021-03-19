@@ -107,7 +107,7 @@ host="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $1}')"
 route="$(cat /root/akun/ipmodem.txt | grep -i ipmodem | cut -d= -f2 | tail -n1)"
 /etc/init.d/xl2tpd start 2>/dev/null
 /etc/init.d/ipsec start 2>/dev/null
-ipsec stop
+rm -rf /var/run/crond.pid 2>/dev/null
 ipsec restart
 sleep 1
 ipsec up L2TP-PSK > /dev/null 2>&1 &
