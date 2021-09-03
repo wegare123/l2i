@@ -1,5 +1,20 @@
 #!/bin/bash
 #l2i (Wegare)
+stop () {
+mkdir -p /var/run/xl2tpd
+touch /var/run/xl2tpd/l2tp-control
+echo "d myVPN" > /var/run/xl2tpd/l2tp-control
+ipsec stop > /dev/null 2>&1 &
+/etc/init.d/ipsec stop 2>/dev/null
+/etc/init.d/xl2tpd stop 2>/dev/null
+host="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $1}')" 
+route="$(cat /root/akun/ipmodem.txt | grep -i ipmodem | cut -d= -f2 | tail -n1)" 
+bles="$(iptables -t nat -v -L POSTROUTING -n --line-number | grep ppp | head -n1 | awk '{print $1}')" 
+route del "$host" gw "$route" metric 0 2>/dev/null
+iptables -t nat -D POSTROUTING $bles 2>/dev/null
+killall -q fping charon
+/etc/init.d/dnsmasq restart 2>/dev/null
+}
 host2="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $1}')" 
 user2="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $2}')" 
 pass2="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $3}')" 
@@ -101,6 +116,7 @@ sleep 2
 clear
 /usr/bin/l2i
 elif [ "${tools}" = "2" ]; then
+stop
 ipmodem="$(route -n | grep -i 0.0.0.0 | head -n1 | awk '{print $2}')" 
 echo "ipmodem=$ipmodem" > /root/akun/ipmodem.txt
 host="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $1}')" 
@@ -131,21 +147,7 @@ fi
 sleep 1
 fping -l google.com > /dev/null 2>&1 &
 elif [ "${tools}" = "3" ]; then
-mkdir -p /var/run/xl2tpd
-touch /var/run/xl2tpd/l2tp-control
-echo "d myVPN" > /var/run/xl2tpd/l2tp-control
-ipsec stop > /dev/null 2>&1 &
-/etc/init.d/ipsec stop 2>/dev/null
-/etc/init.d/xl2tpd stop 2>/dev/null
-host="$(cat /root/akun/l2i.txt | tr '\n' ' '  | awk '{print $1}')" 
-route="$(cat /root/akun/ipmodem.txt | grep -i ipmodem | cut -d= -f2 | tail -n1)" 
-bles="$(iptables -t nat -v -L POSTROUTING -n --line-number | grep ppp | head -n1 | awk '{print $1}')" 
-route del "$host" gw "$route" metric 0 2>/dev/null
-iptables -t nat -D POSTROUTING $bles 2>/dev/null
-killall -q fping charon
-killall dnsmasq 
-/etc/init.d/dnsmasq start > /dev/null
-sleep 2
+stop
 echo "Stop Suksess"
 sleep 2
 clear
