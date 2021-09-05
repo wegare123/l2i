@@ -133,19 +133,28 @@ mkdir -p /var/run/xl2tpd
 touch /var/run/xl2tpd/l2tp-control
 echo "c myVPN" > /var/run/xl2tpd/l2tp-control
 echo "is connecting to the internet"
-sleep 8
+for i in {1..3}
+do
+sleep 5
 pp="$(route -n | grep ppp | head -n1 | awk '{print $8}')" 
-inet="$(ip r | grep $pp | head -n1 | awk '{print $9}')" 
-route add default gw $inet metric 0 2>/dev/null
-iptables -A POSTROUTING --proto tcp -t nat -o $pp -j MASQUERADE 2>/dev/null
-konek=$(ip r | grep $pp | head -n1 | awk '{print $5}')
-if [[ -z $konek ]]; then
-echo "failed to connect"
-else
-echo "connected"
-fi
-sleep 1
-fping -l google.com > /dev/null 2>&1 &
+	if [ "$pp" = "ppp0" ];then 
+	    inet="$(ip r | grep $pp | head -n1 | awk '{print $9}')" 
+        route add default gw $inet metric 0 2>/dev/null
+        iptables -A POSTROUTING --proto tcp -t nat -o $pp -j MASQUERADE 2>/dev/null
+        konek=$(ip r | grep $pp | head -n1 | awk '{print $5}')
+        if [[ -z $konek ]]; then
+        echo "failed to connect"
+        else
+        echo "connected"
+        fi
+        sleep 1
+        fping -l google.com > /dev/null 2>&1 &
+		break
+	else
+		echo "{$i}. Reconnect 5s"
+	fi
+	echo -e "Failed!"
+done
 elif [ "${tools}" = "3" ]; then
 stop
 echo "Stop Suksess"
